@@ -70,8 +70,8 @@ function getURLParam(name) {
 function showDedicationText() { //seguidores
   let text = getURLParam('text');
   if (!text) {
-    text = `Para mi Ovejita:\n\nJamás imaginé que entrar a ese trabajo me regalaría algo tan bonito como conocerte a ti.
-Entre tantas casualidades, la vida nos cruzó en el momento perfecto.\n\nSé que cometí errores y te lastimé, pero quiero demostrarte día a día que puedo enamorarte como la primera vez.\n\nGracias por llegar a mi vida, te quiero muchísimo ❤️`;  } else {
+    text = `Feliz primer mes, mi amor. ❤️🥰\n\nGracias por este primer mes a tu lado, por cada momento, cada sonrisa y cada detalle que compartimos. Me haces muy feliz y estoy agradecido con Dios por haberte puesto en mi camino.
+\n\nEspero que este sea solo el primero de muchos meses y años juntos. Te quiero muchísimo y cada día me enamoro más de ti. ❤️✨\n\nGracias por llegar a mi vida, te quiero muchísimo ❤️`;  } else {
     text = decodeURIComponent(text).replace(/\\n/g, '\n');
   }
   const container = document.getElementById('dedication-text');
