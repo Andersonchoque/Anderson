@@ -104,7 +104,7 @@ function showSignature() {
     dedication.appendChild(signature);
   }
   let firma = getURLParam('firma');
-  signature.textContent = firma ? decodeURIComponent(firma) : "Con amor, Anderson";
+  signature.textContent = firma ? decodeURIComponent(firma) : "Con amor, Para ti mi Ovejita que tanto amo";
   signature.classList.add('visible');
 }
 
