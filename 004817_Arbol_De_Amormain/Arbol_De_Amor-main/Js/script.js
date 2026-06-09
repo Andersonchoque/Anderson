@@ -71,8 +71,7 @@ function showDedicationText() { //seguidores
   let text = getURLParam('text');
   if (!text) {
     text = `Feliz primer mes, mi amor. ❤️🥰\n\nGracias por este primer mes a tu lado, por cada momento, cada sonrisa y cada detalle que compartimos.\n\nMe haces muy feliz y estoy agradecido con Dios por haberte puesto en mi camino.
-\n\nEspero que este sea solo el primero de muchos meses y años juntos.
-\n\nTe quiero muchísimo y cada día me enamoro más de ti. ❤️✨\n\nGracias por llegar a mi vida, te quiero muchísimo ❤️`;  } else {
+\n\nEspero que este sea solo el primero de muchos meses y años juntos.\n\nTe quiero muchísimo y cada día me enamoro más de ti. ❤️✨\n\nGracias por llegar a mi vida, te quiero muchísimo ❤️`;  } else {
     text = decodeURIComponent(text).replace(/\\n/g, '\n');
   }
   const container = document.getElementById('dedication-text');
