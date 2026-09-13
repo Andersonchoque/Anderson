@@ -1,0 +1,136 @@
+etry.setDrawRange(0, 0);
+  germination.add(mesh);
+  return mesh;
+}
+const roots = [
+  curvedRoot([[0,-.12,0],[.03,-.45,.02],[-.08,-.9,.06],[.14,-1.45,.02],[-.15,-2.05,.1]], .035),
+  curvedRoot([[0,-.55,.02],[.3,-.76,.06],[.55,-1.05,.12],[.72,-1.45,.2]], .019),
+  curvedRoot([[-.03,-.82,0],[-.28,-1.0,-.04],[-.55,-1.28,-.08],[-.68,-1.68,-.1]], .018),
+  curvedRoot([[.03,-1.12,.02],[.18,-1.3,-.08],[.1,-1.58,-.18],[.32,-1.9,-.22]], .014)
+];
+
+const seedStem = new THREE.Mesh(new THREE.CylinderGeometry(.055, .075, 4.9, 7), new THREE.MeshStandardMaterial({ color: 0x43802b, roughness: .72 }));
+seedStem.position.y = 2.3;
+seedStem.scale.y = 0.001;
+seedStem.castShadow = true;
+germination.add(seedStem);
+
+function leafGeometry(scale=1) {
+  const s = new THREE.Shape();
+  s.moveTo(0, 0);
+  s.bezierCurveTo(.22*scale, .08*scale, .52*scale, .32*scale, .78*scale, .15*scale);
+  s.bezierCurveTo(.5*scale, -.08*scale, .22*scale, -.1*scale, 0, 0);
+  const geo = new THREE.ShapeGeometry(s, 7);
+  geo.computeVertexNormals();
+  return geo;
+}
+const leafMat = new THREE.MeshStandardMaterial({ color: 0x4d8a33, roughness: .8, side: THREE.DoubleSide });
+const firstLeaves = [
+  new THREE.Mesh(leafGeometry(.95), leafMat),
+  new THREE.Mesh(leafGeometry(.82), leafMat)
+];
+firstLeaves[0].position.set(.03, 1.5, 0); firstLeaves[0].rotation.set(-.25,.15,.35);
+firstLeaves[1].position.set(-.03, 2.35, .02); firstLeaves[1].rotation.set(.15,Math.PI,-.25);
+firstLeaves.forEach(l => { l.scale.setScalar(.001); l.castShadow = true; germination.add(l); });
+
+const petalShape = new THREE.Shape();
+petalShape.moveTo(0, 0);
+petalShape.bezierCurveTo(.09,.16,.13,.36,.05,.52);
+petalShape.bezierCurveTo(0,.62,-.05,.62,-.1,.52);
+petalShape.bezierCurveTo(-.17,.36,-.1,.16,0,0);
+const petalGeo = new THREE.ShapeGeometry(petalShape, 8);
+petalGeo.computeVertexNormals();
+const petalMat = new THREE.MeshStandardMaterial({ color: 0xf5b72b, roughness: .5, side: THREE.DoubleSide });
+const petalMat2 = new THREE.MeshStandardMaterial({ color: 0xffcc3c, roughness: .48, side: THREE.DoubleSide });
+const centerMat = new THREE.MeshStandardMaterial({ color: 0x4b2b18, roughness: .95 });
+
+const firstHead = new THREE.Group();
+firstHead.position.set(0, 4.65, 0);
+firstHead.rotation.x = -.07;
+firstHead.scale.setScalar(.001);
+germination.add(firstHead);
+const firstPetals = [];
+for (let ring=0; ring<2; ring++) {
+  const count = ring ? 18 : 14;
+  const radius = ring ? .27 : .17;
+  for (let i=0; i<count; i++) {
+    const p = new THREE.Mesh(petalGeo, ring ? petalMat : petalMat2);
+    const a = i / count * Math.PI * 2 + ring*.11;
+    p.rotation.z = a;
+    p.position.set(Math.cos(a)*radius, Math.sin(a)*radius, ring ? -.025 : .015);
+    p.scale.set(ring ? 1.18 : .92, ring ? 1.55 : 1.25, 1);
+    firstHead.add(p);
+    firstPetals.push(p);
+  }
+}
+const firstCenter = new THREE.Mesh(new THREE.SphereGeometry(.48, 20, 10), centerMat);
+firstCenter.scale.z = .28;
+firstCenter.position.z = .04;
+firstHead.add(firstCenter);
+
+// --- Campo estático con instancias -----------------------------------------
+const farCount = MOBILE ? 330 : 560;
+const farStemGeo = new THREE.CylinderGeometry(.025, .036, 1, 5);
+const farCenterGeo = new THREE.SphereGeometry(.12, 8, 5);
+const farPetalGeo = petalGeo.clone();
+const farStemMat = new THREE.MeshStandardMaterial({ color: 0x4c7c2e, roughness: .86 });
+const farCenterMat = new THREE.MeshStandardMaterial({ color: 0x513019, roughness: .95 });
+const farPetalMat = new THREE.MeshStandardMaterial({ color: 0xf5b72b, roughness: .58, side: THREE.DoubleSide });
+const farStem = new THREE.InstancedMesh(farStemGeo, farStemMat, farCount);
+const farCenters = new THREE.InstancedMesh(farCenterGeo, farCenterMat, farCount);
+const petalsPerFar = MOBILE ? 8 : 10;
+const farPetals = new THREE.InstancedMesh(farPetalGeo, farPetalMat, farCount * petalsPerFar);
+farStem.frustumCulled = farCenters.frustumCulled = farPetals.frustumCulled = false;
+world.add(farStem, farCenters, farPetals);
+const dummy = new THREE.Object3D();
+const farData = [];
+
+for (let i=0; i<farCount; i++) {
+  const z = 10 - Math.random()*123;
+  const px = pathX(z);
+  const side = Math.random() < .5 ? -1 : 1;
+  const margin = 4.0 + Math.random()*32;
+  const x = px + side*margin + (Math.random()-.5)*3.4;
+  const h = 1.25 + Math.random()*1.2;
+  const head = .78 + Math.random()*.55;
+  const lean = (Math.random()-.5)*.08;
+  farData.push({x,z,h,head,lean});
+  dummy.position.set(x,h*.5,z);
+  dummy.rotation.set(0,0,lean);
+  dummy.scale.set(1,h,1); dummy.updateMatrix(); farStem.setMatrixAt(i,dummy.matrix);
+  dummy.position.set(x+Math.sin(lean)*h*.25,h,z);
+  dummy.rotation.set(0,0,0); dummy.scale.setScalar(head); dummy.updateMatrix(); farCenters.setMatrixAt(i,dummy.matrix);
+  for (let j=0; j<petalsPerFar; j++) {
+    const a = j/petalsPerFar*Math.PI*2 + (i%5)*.13;
+    const idx = i*petalsPerFar+j;
+    dummy.position.set(x+Math.cos(a)*.17*head, h+Math.sin(a)*.17*head, z+.015);
+    dummy.rotation.set(0,0,a);
+    dummy.scale.set(.72*head, 1.0*head, 1);
+    dummy.updateMatrix(); farPetals.setMatrixAt(idx,dummy.matrix);
+  }
+}
+farStem.instanceMatrix.needsUpdate = farCenters.instanceMatrix.needsUpdate = farPetals.instanceMatrix.needsUpdate = true;
+farStem.material.transparent = farCenters.material.transparent = farPetals.material.transparent = true;
+farStem.material.opacity = farCenters.material.opacity = farPetals.material.opacity = 0;
+
+// --- Flores cercanas animadas junto al camino ------------------------------
+const nearData = [];
+const nearCount = MOBILE ? 22 : 30;
+const nearStem = new THREE.InstancedMesh(new THREE.CylinderGeometry(.042,.06,1,7), farStemMat, nearCount);
+const nearCenters = new THREE.InstancedMesh(new THREE.SphereGeometry(.22,12,7), centerMat, nearCount);
+const nearPetalsPer = 16;
+const nearPetals = new THREE.InstancedMesh(petalGeo, petalMat, nearCount*nearPetalsPer);
+const nearLeaves = new THREE.InstancedMesh(leafGeometry(.9), leafMat, nearCount*2);
+[nearStem, nearCenters, nearPetals, nearLeaves].forEach(m => { m.frustumCulled=false; world.add(m); });
+for (let i=0;i<nearCount;i++) {
+  const z = -8 - i*(72/(nearCount-1)) + (Math.random()-.5)*1.4;
+  const side = i%2 ? -1 : 1;
+  const x = pathX(z) + side*(3.05 + Math.random()*1.3);
+  nearData.push({ x, z, h: 1.75+Math.random()*.8, side, seed: Math.random()*10 });
+}
+
+// --- Girasol protagonista al fondo -----------------------------------------
+function createHeroSunflower() {
+  const g = new THREE.Group();
+  const h = 7.6;
+  const stem = new THREE.Mesh(new THREE.Cylinder
