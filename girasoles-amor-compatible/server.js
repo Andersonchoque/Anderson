@@ -1,0 +1,3 @@
+const http=require('http'),fs=require('fs'),path=require('path');
+const root=__dirname,port=process.env.PORT||8080;
+http.createServer((req,res)=>{let p=req.url.split('?')[0];if(p==='/'||p==='')p='/index.html';let f=path.join(root,p);fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end('404')}let ext=path.extname(f);let type=ext==='.html'?'text/html; charset=utf-8':'text/plain; charset=utf-8';res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(d)})}).listen(port,'0.0.0.0',()=>console.log('ready '+port));
