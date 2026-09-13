@@ -1,0 +1,93 @@
+*dt*.08;
+    arr[i*3+1]-=dt*.08*particleVel[i];
+    arr[i*3+2]+=dt*.12;
+    if(arr[i*3+1]<.15) arr[i*3+1]=4+Math.random()*5;
+  }
+  particleGeo.attributes.position.needsUpdate=true;
+}
+
+function updateText(t) {
+  phraseSprites.forEach(({sprite,at})=>{
+    const inP=smooth(range(t,at-2.2,at));
+    const outP=smooth(range(t,at+4.8,at+7.3));
+    sprite.material.opacity=inP*(1-outP);
+    sprite.position.y += Math.sin(t*.45+at)*.0009;
+  });
+  const fp=smooth(range(t,87,91));
+  finalText.material.opacity=fp;
+  finalText.position.y=5.7+Math.sin(t*.5)*.07;
+}
+
+function resetExperience() {
+  elapsed=0;
+  clock.stop(); clock.start();
+  finalText.material.opacity=0;
+  phraseSprites.forEach(p=>p.sprite.material.opacity=0);
+  startGate.classList.add('hidden');
+  replayButton.classList.add('visible'); soundButton.classList.add('visible');
+  started=true;
+}
+
+function startExperience() {
+  if(started) return;
+  if(!audioSystem) audioSystem=createAudioSystem();
+  if(audioSystem?.ctx?.state==='suspended') audioSystem.ctx.resume();
+  resetExperience();
+  setTimeout(()=>hint.classList.add('visible'),23000);
+  setTimeout(()=>hint.classList.remove('visible'),28500);
+}
+
+function toggleSound() {
+  muted=!muted;
+  if(audioSystem?.master) audioSystem.master.gain.setTargetAtTime(muted?0:.22,audioSystem.ctx.currentTime,.08);
+  soundButton.textContent=muted?'×':'♪';
+  soundButton.setAttribute('aria-label',muted?'Activar sonido':'Silenciar sonido');
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  let dt=0;
+  if(started) {
+    dt=Math.min(clock.getDelta(),.05);
+    elapsed=Math.min(TOTAL_DURATION,elapsed+dt);
+    updateCamera(elapsed);
+    updateGermination(elapsed);
+    updateWorldReveal(elapsed);
+    updateNearFlowers(elapsed);
+    updateHero(elapsed);
+    updateHeart(elapsed);
+    updateParticles(dt,elapsed);
+    updateText(elapsed);
+  } else {
+    const t=performance.now()/1000;
+    seed.rotation.y=t*.08;
+    fillLight.intensity=1.25+Math.sin(t*.8)*.12;
+    camera.lookAt(0,-.65,3.2);
+  }
+  renderer.render(scene,camera);
+}
+animate();
+
+startGate.addEventListener('click',startExperience);
+startGate.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') startExperience(); });
+soundButton.addEventListener('click',toggleSound);
+replayButton.addEventListener('click',()=>{
+  if(audioSystem?.ctx?.state==='suspended') audioSystem.ctx.resume();
+  resetExperience();
+});
+
+window.addEventListener('deviceorientation',e=>{
+  if(e.gamma!=null) deviceTilt.x=THREE.MathUtils.clamp(e.gamma/45,-1,1);
+  if(e.beta!=null) deviceTilt.y=THREE.MathUtils.clamp((e.beta-45)/60,-1,1);
+},{passive:true});
+
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(devicePixelRatio,MOBILE?1.35:1.8));
+  renderer.setSize(innerWidth,innerHeight,false);
+});
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) clock.stop();
+  else if(started) clock.start();
+});
