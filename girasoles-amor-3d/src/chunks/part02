@@ -1,0 +1,124 @@
+Geometry(.13,.2,h,10), new THREE.MeshStandardMaterial({ color:0x3e7428, roughness:.75 }));
+  stem.position.y=h/2; stem.castShadow=true; g.add(stem);
+  const leaf1 = new THREE.Mesh(leafGeometry(2.4), leafMat); leaf1.position.set(.05,2.9,0); leaf1.rotation.set(-.3,.2,.4); g.add(leaf1);
+  const leaf2 = new THREE.Mesh(leafGeometry(2.0), leafMat); leaf2.position.set(-.04,4.6,.05); leaf2.rotation.set(.22,Math.PI,-.35); g.add(leaf2);
+  const head = new THREE.Group(); head.position.set(0,h,0); g.add(head);
+  const petals=[];
+  for(let ring=0; ring<3; ring++) {
+    const count = 20 + ring*4;
+    const rr = .45 + ring*.22;
+    for(let i=0;i<count;i++) {
+      const a=i/count*Math.PI*2+ring*.09;
+      const p=new THREE.Mesh(petalGeo, ring===2?petalMat:petalMat2);
+      p.position.set(Math.cos(a)*rr,Math.sin(a)*rr,.02-ring*.018);
+      p.rotation.z=a;
+      p.scale.set(2.25-ring*.18,3.15-ring*.18,1);
+      head.add(p); petals.push(p);
+    }
+  }
+  const c=new THREE.Mesh(new THREE.SphereGeometry(1.0,30,16),centerMat); c.scale.z=.3; c.position.z=.11; head.add(c);
+  return {group:g,head,petals};
+}
+const hero = createHeroSunflower();
+hero.group.position.set(pathX(-88),0,-92);
+hero.group.rotation.y = .04;
+hero.head.scale.setScalar(.72);
+world.add(hero.group);
+
+// --- Corazón de girasoles (instanciado para móvil) -------------------------
+const heartGroup = new THREE.Group();
+heartGroup.position.set(0,0,-103);
+heartGroup.visible=false;
+world.add(heartGroup);
+const heartPoints=[];
+for(let iy=-10;iy<=10;iy++) {
+  for(let ix=-12;ix<=12;ix++) {
+    const x=ix*.52, z=iy*.52;
+    const X=x/6.2, Y=-z/5.6;
+    const eq=Math.pow(X*X+Y*Y-1,3)-X*X*Math.pow(Y,3);
+    if(eq<0 && Math.random()>.26) heartPoints.push({x,z,s:.72+Math.random()*.24,h:.95+Math.random()*.35,seed:Math.random()*10});
+  }
+}
+const heartCount=heartPoints.length;
+const heartPetalsPer=10;
+const heartStem=new THREE.InstancedMesh(new THREE.CylinderGeometry(.025,.035,1,5),farStemMat,heartCount);
+const heartCenters=new THREE.InstancedMesh(new THREE.SphereGeometry(.14,8,5),centerMat,heartCount);
+const heartPetals=new THREE.InstancedMesh(petalGeo,petalMat2,heartCount*heartPetalsPer);
+[heartStem,heartCenters,heartPetals].forEach(m=>{m.frustumCulled=false; heartGroup.add(m);});
+function updateHeartInstances(t,p) {
+  for(let i=0;i<heartCount;i++) {
+    const f=heartPoints[i];
+    const sway=Math.sin(t*.7+f.seed)*.015*p;
+    const h=f.h*f.s;
+    dummy.position.set(f.x,h*.5,f.z); dummy.rotation.set(0,0,sway); dummy.scale.set(f.s,h,f.s); dummy.updateMatrix(); heartStem.setMatrixAt(i,dummy.matrix);
+    dummy.position.set(f.x+Math.sin(sway)*.07,h,f.z); dummy.rotation.set(0,0,0); dummy.scale.setScalar(f.s); dummy.updateMatrix(); heartCenters.setMatrixAt(i,dummy.matrix);
+    for(let j=0;j<heartPetalsPer;j++) {
+      const a=j/heartPetalsPer*Math.PI*2;
+      const idx=i*heartPetalsPer+j;
+      dummy.position.set(f.x+Math.cos(a)*.17*f.s,h+Math.sin(a)*.17*f.s,f.z+.01);
+      dummy.rotation.set(0,0,a);
+      dummy.scale.set(.7*f.s,.95*f.s,1);
+      dummy.updateMatrix(); heartPetals.setMatrixAt(idx,dummy.matrix);
+    }
+  }
+  heartStem.instanceMatrix.needsUpdate=heartCenters.instanceMatrix.needsUpdate=heartPetals.instanceMatrix.needsUpdate=true;
+}
+updateHeartInstances(0,0);
+
+// --- Partículas / pétalos ---------------------------------------------------
+function makePetalSprite() {
+  const c=document.createElement('canvas'); c.width=c.height=64;
+  const ctx=c.getContext('2d');
+  ctx.translate(32,32); ctx.rotate(-.45);
+  const g=ctx.createRadialGradient(-5,-6,2,0,0,27); g.addColorStop(0,'#ffe9a9'); g.addColorStop(.5,'#f5bb38'); g.addColorStop(1,'rgba(226,137,22,0)');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,0,11,24,0,0,Math.PI*2); ctx.fill();
+  const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace; return tex;
+}
+const particleCount=MOBILE?42:70;
+const particlePos=new Float32Array(particleCount*3);
+const particleVel=[];
+for(let i=0;i<particleCount;i++) {
+  particlePos[i*3]=(Math.random()-.5)*18;
+  particlePos[i*3+1]=.6+Math.random()*7;
+  particlePos[i*3+2]=-5-Math.random()*95;
+  particleVel.push(.25+Math.random()*.5);
+}
+const particleGeo=new THREE.BufferGeometry(); particleGeo.setAttribute('position',new THREE.BufferAttribute(particlePos,3));
+const particleMat=new THREE.PointsMaterial({ map:makePetalSprite(), size:.32, transparent:true, depthWrite:false, opacity:0, blending:THREE.NormalBlending });
+const particles=new THREE.Points(particleGeo,particleMat); world.add(particles);
+
+// --- Texto dentro del mundo -------------------------------------------------
+function createTextSprite(text, fontSize=66, width=1500, lineHeight=1.25) {
+  const c=document.createElement('canvas'); c.width=width; c.height=420;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(60,30,0,.45)'; ctx.shadowBlur=22;
+  ctx.fillStyle='#fff3cf';
+  ctx.font=`600 ${fontSize}px "Cormorant Garamond", Georgia, serif`;
+  const words=text.split(' '); const maxW=width*.84; const lines=[]; let line='';
+  for(const w of words) {
+    const test=(line+' '+w).trim();
+    if(ctx.measureText(test).width>maxW && line) { lines.push(line); line=w; } else line=test;
+  }
+  if(line) lines.push(line);
+  const lh=fontSize*lineHeight;
+  const y0=c.height/2-(lines.length-1)*lh/2;
+  lines.forEach((ln,i)=>ctx.fillText(ln,c.width/2,y0+i*lh));
+  const tex=new THREE.CanvasTexture(c); tex.colorSpace=THREE.SRGBColorSpace;
+  const mat=new THREE.SpriteMaterial({ map:tex, transparent:true, opacity:0, depthWrite:false });
+  const sp=new THREE.Sprite(mat); sp.scale.set(10.5,2.95,1); scene.add(sp); return sp;
+}
+const phraseSprites=[
+  { sprite:createTextSprite('Todo empezó con algo pequeño…',62), at:38, pos:new THREE.Vector3(0,3.0,-18) },
+  { sprite:createTextSprite('Y poco a poco, todo fue floreciendo.',62), at:50, pos:new THREE.Vector3(0,3.1,-43) },
+  { sprite:createTextSprite('Entre tantos caminos, siempre elegiría caminar contigo.',58), at:63, pos:new THREE.Vector3(0,3.2,-70) },
+  { sprite:createTextSprite('Hay amores que no se explican. Se cultivan.',64), at:78, pos:new THREE.Vector3(0,9.8,-93) }
+];
+phraseSprites.forEach(p=>p.sprite.position.copy(p.pos));
+const finalText=createTextSprite('21 de septiembre, Feliz dia de Amor',72,1700,1.12);
+finalText.position.set(0,5.7,-103);
+finalText.scale.set(14.5,3.6,1);
+
+// --- Audio ambiente procedural ---------------------------------------------
+function c
