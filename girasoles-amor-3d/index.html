@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090805" />
+    <meta name="description" content="Una experiencia 3D cinematográfica entre girasoles, creada para celebrar el amor." />
+    <meta property="og:title" content="Un camino de girasoles para ti 💛" />
+    <meta property="og:description" content="Toca para entrar y deja que todo florezca." />
+    <meta property="og:type" content="website" />
+    <title>Un camino de girasoles para ti 💛</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@300;400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main id="app" aria-label="Experiencia romántica 3D">
+      <canvas id="scene"></canvas>
+
+      <div id="startGate" class="start-gate" role="button" tabindex="0" aria-label="Iniciar experiencia">
+        <div class="start-copy">
+          <span class="start-kicker">Una pequeña historia</span>
+          <h1>Toca para comenzar</h1>
+          <p>Activa el sonido y deja que todo florezca.</p>
+        </div>
+      </div>
+
+      <div id="hint" class="hint" aria-hidden="true">Gira el teléfono lentamente para sentir el recorrido</div>
+
+      <button id="soundButton" class="icon-button" type="button" aria-label="Silenciar sonido">♪</button>
+      <button id="replayButton" class="icon-button replay" type="button" aria-label="Repetir experiencia">↻</button>
+
+      <div id="fallback" class="fallback" hidden>
+        <p>Tu navegador no pudo iniciar WebGL. Prueba con Chrome, Safari o Edge actualizado.</p>
+      </div>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
