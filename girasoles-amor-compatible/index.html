@@ -103,7 +103,7 @@ function audioStart(){
 }
 function start(){gate.style.display='none';started=true;startTime=performance.now();audioStart();requestAnimationFrame(frame)}
 document.getElementById('start').onclick=start;gate.onclick=e=>{if(e.target===gate)start()}
-soundBtn.onclick=()=>{muted=!muted;soundBtn.textContent=muted?'×':'♪';if(audio?.nodes)audio.nodes.forEach((n,i)=>n.gain.value=muted?0:(i===0?.025:.05))}
+soundBtn.onclick=()=>{muted=!muted;soundBtn.textContent=muted?'×':'♪';if(audio&&audio.nodes)audio.nodes.forEach((n,i)=>n.gain.value=muted?0:(i===0?0.025:0.05))}
 replay.onclick=()=>{startTime=performance.now();cap.style.opacity=0}
 </script>
 </body></html>
