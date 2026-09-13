@@ -8,7 +8,6 @@ function drawFarGapFill(t,horizon,path){
   for(const row of rows){
     let n=0;
     for(let px=2;px<W;px+=row.step){
-      // Deja libre únicamente la entrada visual del camino.
       if(px>path.topL-10&&px<path.topR+10){n++;continue;}
       const jitter=(rand(row.seed+n)-.5)*7;
       const py=horizon+row.y+(rand(row.seed+500+n)-.5)*6;
@@ -20,8 +19,6 @@ function drawFarGapFill(t,horizon,path){
   }
 }
 
-// Solo sustituye el dibujo del campo para insertar el relleno de fondo.
-// El camino, tamaños, cantidad de flores cercanas y movimiento se mantienen como estaban.
 drawField=function(t){
   const walk=range(t,23,72)*70,horizon=H*.43;
   sky(t);
@@ -48,3 +45,54 @@ drawField=function(t){
     flower(q.px,q.py,q.size,open,w,clamp(1-(q.z-52)/15));
   }
 };
+
+// Música sincronizada: Yellow comienza exactamente cuando se inicia la experiencia.
+const musicTrack=new Audio('https://raw.githubusercontent.com/Andersonchoque/Anderson/yellow-audio/girasoles-amor-compatible/yellow-sync.mp3');
+musicTrack.preload='auto';
+musicTrack.volume=.72;
+musicTrack.playsInline=true;
+
+// Sustituye el sonido ambiental anterior por la canción elegida.
+audioStart=function(){
+  try{
+    musicTrack.pause();
+    musicTrack.currentTime=0;
+    musicTrack.muted=false;
+    muted=false;
+    soundBtn.textContent='♪';
+    const playPromise=musicTrack.play();
+    if(playPromise&&playPromise.catch)playPromise.catch(()=>{});
+  }catch(e){}
+};
+
+// El botón de sonido controla únicamente la canción.
+soundBtn.onclick=()=>{
+  muted=!muted;
+  musicTrack.muted=muted;
+  soundBtn.textContent=muted?'×':'♪';
+  if(!muted&&musicTrack.paused&&started){
+    const p=musicTrack.play();
+    if(p&&p.catch)p.catch(()=>{});
+  }
+};
+
+// Repetir reinicia música y animación juntas.
+replay.onclick=()=>{
+  startTime=performance.now();
+  cap.style.opacity=0;
+  try{
+    musicTrack.currentTime=0;
+    if(!muted){const p=musicTrack.play();if(p&&p.catch)p.catch(()=>{});}
+  }catch(e){}
+};
+
+// Si el navegador recupera la pestaña después de una pausa larga, mantenemos la música cercana al tiempo visual.
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&started&&!muted){
+    const visualTime=Math.min(99,(performance.now()-startTime)/1000);
+    if(Math.abs(musicTrack.currentTime-visualTime)>2.5){
+      try{musicTrack.currentTime=visualTime}catch(e){}
+    }
+    const p=musicTrack.play();if(p&&p.catch)p.catch(()=>{});
+  }
+});
