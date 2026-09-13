@@ -1,0 +1,151 @@
+reateAudioSystem() {
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx) return null;
+  const ctx=new AudioCtx();
+  const master=ctx.createGain(); master.gain.value=.22; master.connect(ctx.destination);
+
+  const drone=ctx.createOscillator(); drone.type='sine'; drone.frequency.value=110;
+  const drone2=ctx.createOscillator(); drone2.type='sine'; drone2.frequency.value=164.81;
+  const g1=ctx.createGain(); g1.gain.value=.028; const g2=ctx.createGain(); g2.gain.value=.018;
+  drone.connect(g1).connect(master); drone2.connect(g2).connect(master); drone.start(); drone2.start();
+
+  const buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*.35;
+  const wind=ctx.createBufferSource(); wind.buffer=buffer; wind.loop=true;
+  const filter=ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=680; filter.Q.value=.3;
+  const wg=ctx.createGain(); wg.gain.value=.024; wind.connect(filter).connect(wg).connect(master); wind.start();
+
+  const lfo=ctx.createOscillator(); lfo.frequency.value=.08;
+  const lfoGain=ctx.createGain(); lfoGain.gain.value=.012; lfo.connect(lfoGain).connect(g1.gain); lfo.start();
+  return {ctx, master, drone, drone2, wind};
+}
+
+// --- Cámara cinematográfica -------------------------------------------------
+const lookTarget=new THREE.Vector3();
+function updateCamera(t) {
+  let x=0,y=0,z=5, tx=0,ty=0,tz=0;
+  if(t<15) {
+    const p=smoother(range(t,0,15));
+    x=lerp(.18,-.2,p); y=lerp(-.55,.4,p); z=lerp(5.0,5.3,p);
+    tx=0; ty=lerp(-.72,.2,p); tz=3.2;
+  } else if(t<29) {
+    const p=smoother(range(t,15,29));
+    x=lerp(-.2,0.5,p); y=lerp(.4,2.7,p); z=lerp(5.3,7.6,p);
+    tx=0; ty=lerp(.8,2.8,p); tz=3.0;
+  } else if(t<70) {
+    const p=smoother(range(t,29,70));
+    const zz=lerp(7.6,-76,p);
+    const xx=pathX(zz);
+    const bob=REDUCED_MOTION?0:Math.sin(t*2.05)*.035;
+    const sway=REDUCED_MOTION?0:Math.sin(t*.72)*.06;
+    x=xx+sway + deviceTilt.x*.28; y=1.55+bob+deviceTilt.y*.12; z=zz;
+    const ahead=zz-7;
+    tx=pathX(ahead); ty=1.62; tz=ahead;
+  } else if(t<83) {
+    const p=smoother(range(t,70,83));
+    x=lerp(pathX(-76),pathX(-89)+.15,p);
+    y=lerp(1.55,2.25,p); z=lerp(-76,-85.5,p);
+    tx=pathX(-92); ty=lerp(2.1,6.7,p); tz=-92;
+  } else {
+    const p=smoother(range(t,83,TOTAL_DURATION));
+    x=lerp(pathX(-89)+.15,0,p);
+    y=lerp(2.25,43,p);
+    z=lerp(-85.5,-101,p);
+    tx=0; ty=lerp(6.5,0,p); tz=-103;
+  }
+  camera.position.set(x,y,z);
+  lookTarget.set(tx,ty,tz);
+  camera.lookAt(lookTarget);
+}
+
+function updateGermination(t) {
+  const rootP=smoother(range(t,1.5,9.5));
+  roots.forEach((r,i)=> {
+    const c=r.geometry.index?.count ?? r.geometry.attributes.position.count;
+    r.geometry.setDrawRange(0,Math.floor(c*clamp01(rootP*(1.32-i*.11))));
+  });
+  const crack=smooth(range(t,4,7)); seed.scale.x=.75+crack*.12; seed.rotation.z=.55-crack*.08;
+  const stemP=smoother(range(t,7.5,20));
+  seedStem.scale.y=Math.max(.001,stemP); seedStem.position.y=-.05+2.45*stemP;
+  const leaf1=smoother(range(t,11.5,18)); const leaf2=smoother(range(t,14.5,21));
+  firstLeaves[0].scale.setScalar(Math.max(.001,leaf1)); firstLeaves[1].scale.setScalar(Math.max(.001,leaf2));
+  const bloom=smoother(range(t,18,28)); firstHead.scale.setScalar(Math.max(.001,bloom));
+  firstHead.rotation.z=Math.sin(t*.7)*.018*bloom;
+  firstPetals.forEach((p,i)=> { const q=smoother(clamp01(bloom*1.25-(i%7)*.025)); p.scale.x*=1; p.rotation.x=(1-q)*1.15; });
+  seed.visible=t<17;
+  underground.material.opacity=1-smooth(range(t,18,28)); underground.material.transparent=true;
+}
+
+function updateWorldReveal(t) {
+  const day=smoother(range(t,18,31));
+  skyMat.opacity=day;
+  path.material.opacity=day;
+  farStem.material.opacity=farCenters.material.opacity=farPetals.material.opacity=day;
+  particleMat.opacity=.8*day;
+  sun.material.opacity=.9*day;
+  ambient.intensity=lerp(.08,1.25,day);
+  sunLight.intensity=lerp(.18,2.8,day);
+  fillLight.intensity=lerp(1.5,.18,day);
+  renderer.toneMappingExposure=lerp(.48,1.05,day);
+  scene.fog.color.setRGB(lerp(.07,.72,day),lerp(.05,.63,day),lerp(.025,.48,day));
+  scene.fog.density=lerp(.04,.008,day);
+}
+
+function updateNearFlowers(t) {
+  const wind=t*.9;
+  for(let i=0;i<nearCount;i++) {
+    const f=nearData[i];
+    const dist=Math.abs(camera.position.z-f.z);
+    const trigger=clamp01(1-dist/13);
+    const travelReady=smooth(range(t,27,70));
+    const bloom=smoother(trigger*travelReady);
+    const h=f.h*(.55+.45*bloom);
+    const sway=Math.sin(wind+f.seed)*.045*(.35+.65*bloom);
+
+    dummy.position.set(f.x,h*.5,f.z); dummy.rotation.set(0,0,sway); dummy.scale.set(1,h,1); dummy.updateMatrix(); nearStem.setMatrixAt(i,dummy.matrix);
+    dummy.position.set(f.x+Math.sin(sway)*.15,h,f.z); dummy.rotation.set(0,0,0); dummy.scale.setScalar(.62+.38*bloom); dummy.updateMatrix(); nearCenters.setMatrixAt(i,dummy.matrix);
+    for(let j=0;j<nearPetalsPer;j++) {
+      const a=j/nearPetalsPer*Math.PI*2+(i%3)*.08;
+      const radial=.13+.13*bloom;
+      const idx=i*nearPetalsPer+j;
+      dummy.position.set(f.x+Math.cos(a)*radial,h+Math.sin(a)*radial,f.z+.025);
+      dummy.rotation.set((1-bloom)*1.15,0,a);
+      dummy.scale.set(.62+.45*bloom,.78+1.05*bloom,1);
+      dummy.updateMatrix(); nearPetals.setMatrixAt(idx,dummy.matrix);
+    }
+    for(let l=0;l<2;l++) {
+      const idx=i*2+l;
+      const ly=h*(l? .6:.35);
+      dummy.position.set(f.x,ly,f.z);
+      dummy.rotation.set(l?.2:-.2,l?Math.PI:0,l?.45:-.45);
+      dummy.scale.setScalar(.58+.35*bloom);
+      dummy.updateMatrix(); nearLeaves.setMatrixAt(idx,dummy.matrix);
+    }
+  }
+  nearStem.instanceMatrix.needsUpdate=nearCenters.instanceMatrix.needsUpdate=nearPetals.instanceMatrix.needsUpdate=nearLeaves.instanceMatrix.needsUpdate=true;
+}
+
+function updateHero(t) {
+  const approach=smoother(range(t,69,84));
+  const bloom=smoother(range(t,75,86));
+  hero.head.scale.setScalar(.72+.28*bloom);
+  hero.group.rotation.z=Math.sin(t*.55)*.015;
+  hero.petals.forEach((p,i)=>{
+    p.rotation.x=(1-bloom)*.7 + Math.sin(t*.8+i)*.006;
+  });
+  hero.group.visible=t>45;
+  hero.group.scale.setScalar(.85+.15*approach);
+}
+
+function updateHeart(t) {
+  const p=smooth(range(t,82,88));
+  heartGroup.visible=p>.01;
+  heartGroup.scale.setScalar(.82+.18*p);
+  if(p>.01) updateHeartInstances(t,p);
+}
+
+function updateParticles(dt,t) {
+  const arr=particleGeo.attributes.position.array;
+  for(let i=0;i<particleCount;i++) {
+    arr[i*3]+=Math.sin(t*.35+i)
