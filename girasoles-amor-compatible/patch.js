@@ -46,81 +46,87 @@ drawField=function(t){
   }
 };
 
-// ===== Música fiable para Android: Coldplay - Yellow (YouTube oficial) =====
-// Se precarga el reproductor antes de habilitar el botón. Así el toque del usuario
-// inicia música y animación al mismo tiempo y Chrome no bloquea el sonido.
-let ytPlayer=null;
-let ytReady=false;
-let stopTimer=null;
+// ===== Yellow LOCAL: sin YouTube, sin iframe, pensado para Android Chrome =====
 const startBtn=document.getElementById('start');
+let yellowAudio=null;
+let yellowReady=false;
+let audioLoadError=false;
+let yellowObjectURL=null;
+
 startBtn.disabled=true;
 startBtn.textContent='Cargando música…';
 startBtn.style.opacity='.65';
 
-const ytHolder=document.createElement('div');
-ytHolder.id='yt-player';
-ytHolder.style.cssText='position:fixed;width:2px;height:2px;left:-20px;top:-20px;opacity:.01;pointer-events:none;overflow:hidden;';
-document.body.appendChild(ytHolder);
-
-window.onYouTubeIframeAPIReady=function(){
-  ytPlayer=new YT.Player('yt-player',{
-    width:'2',height:'2',
-    videoId:'yKNxeF4KMsY',
-    playerVars:{
-      autoplay:0,
-      controls:0,
-      disablekb:1,
-      fs:0,
-      playsinline:1,
-      rel:0,
-      start:0,
-      origin:location.origin
-    },
-    events:{
-      onReady:function(){
-        ytReady=true;
-        try{ytPlayer.setVolume(72);ytPlayer.unMute();}catch(e){}
-        startBtn.disabled=false;
-        startBtn.textContent='Comenzar 💛';
-        startBtn.style.opacity='1';
-      },
-      onError:function(){
-        startBtn.disabled=false;
-        startBtn.textContent='Comenzar 💛';
-        startBtn.style.opacity='1';
-      }
-    }
-  });
-};
-
-(function loadYT(){
-  const s=document.createElement('script');
-  s.src='https://www.youtube.com/iframe_api';
-  s.async=true;
-  document.head.appendChild(s);
-})();
-
-function playYellowFromStart(){
-  if(!ytReady||!ytPlayer)return false;
+async function loadYellowLocal(){
   try{
-    ytPlayer.unMute();
-    ytPlayer.setVolume(72);
-    ytPlayer.seekTo(0,true);
-    ytPlayer.playVideo();
-    muted=false;
-    soundBtn.textContent='♪';
-    clearTimeout(stopTimer);
-    stopTimer=setTimeout(()=>{try{ytPlayer.pauseVideo();}catch(e){}},99000);
-    return true;
-  }catch(e){return false;}
-}
+    const paths=[0,1,2,3,4,5].map(i=>'./audio/y2-part0'+i+'.b64');
+    const parts=await Promise.all(paths.map(async p=>{
+      const r=await fetch(p,{cache:'no-store'});
+      if(!r.ok)throw new Error('No se pudo cargar '+p);
+      return (await r.text()).replace(/\s+/g,'');
+    }));
 
-function startExperienceWithMusic(){
-  if(!ytReady){
-    startBtn.textContent='Espera un momento…';
-    return;
+    const b64=parts.join('');
+    const raw=atob(b64);
+    const bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+
+    const blob=new Blob([bytes],{type:'audio/ogg; codecs=opus'});
+    yellowObjectURL=URL.createObjectURL(blob);
+    yellowAudio=new Audio();
+    yellowAudio.preload='auto';
+    yellowAudio.playsInline=true;
+    yellowAudio.volume=.9;
+    yellowAudio.src=yellowObjectURL;
+    yellowAudio.load();
+
+    const ready=()=>{
+      if(yellowReady)return;
+      yellowReady=true;
+      startBtn.disabled=false;
+      startBtn.textContent='Comenzar 💛';
+      startBtn.style.opacity='1';
+      hint.textContent='Música lista ♪';
+    };
+    yellowAudio.addEventListener('canplay',ready,{once:true});
+    yellowAudio.addEventListener('canplaythrough',ready,{once:true});
+    setTimeout(ready,1800);
+  }catch(err){
+    console.error('Audio Yellow:',err);
+    audioLoadError=true;
+    startBtn.disabled=false;
+    startBtn.textContent='Comenzar 💛';
+    startBtn.style.opacity='1';
+    hint.textContent='No se pudo preparar la música';
   }
-  playYellowFromStart();
+}
+loadYellowLocal();
+
+function startExperienceWithYellow(){
+  if(startBtn.disabled)return;
+
+  // IMPORTANTE: play() ocurre directamente dentro del toque del usuario.
+  if(yellowAudio&&yellowReady){
+    try{
+      yellowAudio.pause();
+      yellowAudio.currentTime=0;
+      yellowAudio.muted=false;
+      yellowAudio.volume=.9;
+      const playPromise=yellowAudio.play();
+      if(playPromise&&playPromise.catch){
+        playPromise.catch(err=>{
+          console.warn('Chrome bloqueó audio:',err);
+          hint.textContent='Toca ♪ para activar la música';
+          hint.style.opacity=.95;
+        });
+      }
+      muted=false;
+      soundBtn.textContent='♪';
+    }catch(err){
+      console.warn(err);
+    }
+  }
+
   gate.style.display='none';
   started=true;
   startTime=performance.now();
@@ -128,29 +134,36 @@ function startExperienceWithMusic(){
   requestAnimationFrame(frame);
 }
 
-startBtn.onclick=startExperienceWithMusic;
-gate.onclick=e=>{if(e.target===gate&&!startBtn.disabled)startExperienceWithMusic()};
+startBtn.onclick=startExperienceWithYellow;
+gate.onclick=e=>{
+  if(e.target===gate&&!startBtn.disabled)startExperienceWithYellow();
+};
 
 soundBtn.onclick=()=>{
+  if(!yellowAudio)return;
   muted=!muted;
+  yellowAudio.muted=muted;
   soundBtn.textContent=muted?'×':'♪';
-  if(!ytPlayer)return;
-  try{
-    if(muted)ytPlayer.mute();
-    else{ytPlayer.unMute();ytPlayer.setVolume(72);if(started)ytPlayer.playVideo();}
-  }catch(e){}
+  if(!muted&&started){
+    const p=yellowAudio.play();
+    if(p&&p.catch)p.catch(()=>{});
+  }
 };
 
 replay.onclick=()=>{
   startTime=performance.now();
   cap.style.opacity=0;
-  if(ytPlayer){
+  if(yellowAudio){
     try{
-      ytPlayer.seekTo(0,true);
-      if(muted)ytPlayer.mute(); else{ytPlayer.unMute();ytPlayer.setVolume(72);}
-      ytPlayer.playVideo();
-      clearTimeout(stopTimer);
-      stopTimer=setTimeout(()=>{try{ytPlayer.pauseVideo();}catch(e){}},99000);
+      yellowAudio.pause();
+      yellowAudio.currentTime=0;
+      yellowAudio.muted=muted;
+      const p=yellowAudio.play();
+      if(p&&p.catch)p.catch(()=>{});
     }catch(e){}
   }
 };
+
+window.addEventListener('pagehide',()=>{
+  if(yellowObjectURL)URL.revokeObjectURL(yellowObjectURL);
+});
