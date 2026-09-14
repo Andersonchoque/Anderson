@@ -21,18 +21,14 @@ function drawFarGapFill(t,horizon,path){
 
 drawField=function(t){
   const walk=range(t,23,72)*70,horizon=H*.43;
-  sky(t);
-  drawGreenGround(horizon);
+  sky(t);drawGreenGround(horizon);
   let path=drawPath(horizon,walk);
   drawGroundPlants(t,walk,horizon,path);
   drawFarGapFill(t,horizon,path);
-
   let visible=[];
   for(const f of field){
-    let z=f.z-walk;
-    if(z<1||z>65)continue;
-    let sc=Math.min(1.7,6/z),
-        center=W*.5+Math.sin((walk+z)*.05)*W*.025,
+    let z=f.z-walk;if(z<1||z>65)continue;
+    let sc=Math.min(1.7,6/z),center=W*.5+Math.sin((walk+z)*.05)*W*.025,
         px=center+f.side*(W*(.06+f.lane*.06))*sc,
         py=horizon+(H-horizon)*Math.pow(1-z/65,1.55),
         size=(20+f.h*28)*sc*(W/390);
@@ -40,17 +36,16 @@ drawField=function(t){
   }
   visible.sort((a,b)=>b.z-a.z);
   for(const q of visible){
-    let open=.72+.28*smooth(range(9-q.z,0,8)),
-        w=Math.sin(t*1.7+q.f.seed)*.18;
+    let open=.72+.28*smooth(range(9-q.z,0,8)),w=Math.sin(t*1.7+q.f.seed)*.18;
     flower(q.px,q.py,q.size,open,w,clamp(1-(q.z-52)/15));
   }
 };
 
-// ===== Yellow LOCAL: sin YouTube, sin iframe, pensado para Android Chrome =====
+// ===== COLDPLAY - YELLOW LOCAL =====
+// La música está guardada dentro del propio proyecto. No usa YouTube ni iframes.
 const startBtn=document.getElementById('start');
 let yellowAudio=null;
 let yellowReady=false;
-let audioLoadError=false;
 let yellowObjectURL=null;
 
 startBtn.disabled=true;
@@ -59,25 +54,30 @@ startBtn.style.opacity='.65';
 
 async function loadYellowLocal(){
   try{
-    const paths=[0,1,2,3,4,5].map(i=>'./audio/y2-part0'+i+'.b64');
+    const paths=[
+      './audio/y2-part00.b64',
+      './audio/y2-part01.b64',
+      './audio/y2-part02.b64',
+      './audio/y2-part03a.b64',
+      './audio/y2-part03b.b64',
+      './audio/y2-part04.b64',
+      './audio/y2-part05.b64'
+    ];
     const parts=await Promise.all(paths.map(async p=>{
       const r=await fetch(p,{cache:'no-store'});
       if(!r.ok)throw new Error('No se pudo cargar '+p);
       return (await r.text()).replace(/\s+/g,'');
     }));
-
     const b64=parts.join('');
     const raw=atob(b64);
     const bytes=new Uint8Array(raw.length);
     for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
-
-    const blob=new Blob([bytes],{type:'audio/ogg; codecs=opus'});
+    const blob=new Blob([bytes],{type:'audio/ogg'});
     yellowObjectURL=URL.createObjectURL(blob);
-    yellowAudio=new Audio();
+    yellowAudio=new Audio(yellowObjectURL);
     yellowAudio.preload='auto';
-    yellowAudio.playsInline=true;
-    yellowAudio.volume=.9;
-    yellowAudio.src=yellowObjectURL;
+    yellowAudio.setAttribute('playsinline','');
+    yellowAudio.volume=.92;
     yellowAudio.load();
 
     const ready=()=>{
@@ -89,44 +89,44 @@ async function loadYellowLocal(){
       hint.textContent='Música lista ♪';
     };
     yellowAudio.addEventListener('canplay',ready,{once:true});
-    yellowAudio.addEventListener('canplaythrough',ready,{once:true});
-    setTimeout(ready,1800);
+    yellowAudio.addEventListener('loadeddata',ready,{once:true});
+    yellowAudio.addEventListener('error',()=>{
+      startBtn.disabled=false;
+      startBtn.textContent='Comenzar 💛';
+      startBtn.style.opacity='1';
+      hint.textContent='Toca ♪ si no escuchas la música';
+    },{once:true});
+    setTimeout(ready,2200);
   }catch(err){
-    console.error('Audio Yellow:',err);
-    audioLoadError=true;
+    console.error('Yellow local:',err);
     startBtn.disabled=false;
     startBtn.textContent='Comenzar 💛';
     startBtn.style.opacity='1';
-    hint.textContent='No se pudo preparar la música';
+    hint.textContent='Toca ♪ si no escuchas la música';
   }
 }
 loadYellowLocal();
 
+function playYellow(reset){
+  if(!yellowAudio)return;
+  try{
+    if(reset){yellowAudio.pause();yellowAudio.currentTime=0;}
+    yellowAudio.muted=false;
+    yellowAudio.volume=.92;
+    const p=yellowAudio.play();
+    if(p&&p.catch)p.catch(()=>{
+      hint.textContent='Toca ♪ para activar la música';
+      hint.style.opacity=.95;
+    });
+    muted=false;
+    soundBtn.textContent='♪';
+  }catch(e){console.warn(e);}
+}
+
 function startExperienceWithYellow(){
   if(startBtn.disabled)return;
-
-  // IMPORTANTE: play() ocurre directamente dentro del toque del usuario.
-  if(yellowAudio&&yellowReady){
-    try{
-      yellowAudio.pause();
-      yellowAudio.currentTime=0;
-      yellowAudio.muted=false;
-      yellowAudio.volume=.9;
-      const playPromise=yellowAudio.play();
-      if(playPromise&&playPromise.catch){
-        playPromise.catch(err=>{
-          console.warn('Chrome bloqueó audio:',err);
-          hint.textContent='Toca ♪ para activar la música';
-          hint.style.opacity=.95;
-        });
-      }
-      muted=false;
-      soundBtn.textContent='♪';
-    }catch(err){
-      console.warn(err);
-    }
-  }
-
+  // Se ejecuta dentro del mismo toque del usuario para cumplir la política de Android/Chrome.
+  playYellow(true);
   gate.style.display='none';
   started=true;
   startTime=performance.now();
@@ -135,35 +135,24 @@ function startExperienceWithYellow(){
 }
 
 startBtn.onclick=startExperienceWithYellow;
-gate.onclick=e=>{
-  if(e.target===gate&&!startBtn.disabled)startExperienceWithYellow();
-};
+gate.onclick=e=>{if(e.target===gate&&!startBtn.disabled)startExperienceWithYellow();};
 
 soundBtn.onclick=()=>{
   if(!yellowAudio)return;
-  muted=!muted;
-  yellowAudio.muted=muted;
-  soundBtn.textContent=muted?'×':'♪';
-  if(!muted&&started){
-    const p=yellowAudio.play();
-    if(p&&p.catch)p.catch(()=>{});
+  if(yellowAudio.muted||yellowAudio.paused){
+    yellowAudio.muted=false;muted=false;soundBtn.textContent='♪';
+    const p=yellowAudio.play();if(p&&p.catch)p.catch(()=>{});
+  }else{
+    yellowAudio.muted=true;muted=true;soundBtn.textContent='×';
   }
 };
 
 replay.onclick=()=>{
-  startTime=performance.now();
-  cap.style.opacity=0;
+  startTime=performance.now();cap.style.opacity=0;
   if(yellowAudio){
-    try{
-      yellowAudio.pause();
-      yellowAudio.currentTime=0;
-      yellowAudio.muted=muted;
-      const p=yellowAudio.play();
-      if(p&&p.catch)p.catch(()=>{});
-    }catch(e){}
+    yellowAudio.pause();yellowAudio.currentTime=0;yellowAudio.muted=muted;
+    const p=yellowAudio.play();if(p&&p.catch)p.catch(()=>{});
   }
 };
 
-window.addEventListener('pagehide',()=>{
-  if(yellowObjectURL)URL.revokeObjectURL(yellowObjectURL);
-});
+window.addEventListener('pagehide',()=>{if(yellowObjectURL)URL.revokeObjectURL(yellowObjectURL);});
