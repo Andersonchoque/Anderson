@@ -30,7 +30,7 @@ button{font:inherit}
 <body>
 <main id="app">
   <video id="film" src="https://d2jqrm6oza8nb6.cloudfront.net/datasets/30871a26-3873-4c26-9a7a-8abee952dd12.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiYTZhM2EwZjc2MzUwOTg4OCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTY5OTgzMX0.a9YUTFvOfNp0XK1EvkO-cFrnCvM4f5N0fgVKWys0fAU" preload="metadata" playsinline webkit-playsinline muted></video>
-  <audio id="song" preload="none"></audio>
+  <audio id="song" preload="auto" src="https://d2jqrm6oza8nb6.cloudfront.net/datasets/f0e92112-41b7-48ab-b6e3-33021ae5caab.mp4?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMWUzNWRkYjZiNWE5YjNlMSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc4OTcxMzg0Nn0.z8FV0ReOT2eHW1dvoDXIVZ5GVz8D_jfuulokqvtT5QQ"></audio>
   <div class="shade"></div><div class="grain"></div><div id="fade"></div>
   <div id="progress"><div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div></div>
   <section id="caption"><p id="kicker"></p><h1 id="title"></h1><p id="sub"></p></section>
@@ -43,7 +43,7 @@ button{font:inherit}
       <h1 class="hero">5 meses<span>contigo ❤️</span></h1>
       <p class="lead">No quise hacerte una página normal. Quise guardar un pequeño momento nuestro de una forma distinta.</p>
       <button id="start" class="primary" type="button">Entrar a nuestro recuerdo</button>
-      <div class="hint">Toca una vez y comienza todo</div>
+      <div class="hint">Toca una vez · video + música comienzan juntos</div>
     </div>
   </section>
 
@@ -79,9 +79,45 @@ async function seek(s){await ensureMeta();const max=Number.isFinite(film.duratio
 function safePlay(m){try{const p=m.play();if(p&&p.catch)p.catch(()=>{});return p||Promise.resolve()}catch(e){return Promise.resolve()}}
 async function opening(id){prog(0,5);await seek(0);film.className='show';film.playbackRate=.90;film.muted=true;cap(chapters[0]);safePlay(film);const st=performance.now();while(id===token&&performance.now()-st<5200){const e=performance.now()-st;prog(0,Math.min(100,e/52));if(e>1700)hideCap();if(film.currentTime>=5.16)break;await wait(40)}film.pause();hideCap();prog(0,100)}
 async function loopClip(c,id,index){await seek(c.a);film.className='show soft push';film.playbackRate=c.r;film.muted=true;cap(c);safePlay(film);const st=performance.now();while(id===token){const e=performance.now()-st;prog(index,e/c.d*100);if(e>=c.d)break;if(film.currentTime>=c.b-.03){film.pause();await seek(c.a);safePlay(film)}await wait(34)}film.pause();hideCap();prog(index,100)}
-async function musicStart(){muted=true;sound.style.display='none';return false}
+async function musicStart(){
+  muted=false;
+  song.muted=false;
+  song.volume=.48;
+  song.currentTime=0;
+  sound.style.display='';
+  sound.classList.add('show');
+  sound.textContent='♪';
+  try{
+    const p=song.play();
+    if(p&&p.catch) await p;
+    return true;
+  }catch(e){
+    muted=true;
+    song.muted=true;
+    sound.textContent='×';
+    stat('Toca ♪ para activar la música',true);
+    return false;
+  }
+}
 async function story(){token++;const id=token;intro.hidden=true;final.hidden=true;progress.classList.add('show');sound.classList.add('show');fills.forEach(f=>f.style.width='0%');stat('Cargando el recuerdo…',true);film.load();song.load();const mp=musicStart();await ensureMeta();stat('',false);await opening(id);if(id!==token)return;for(let i=1;i<5;i++){await black(260);if(id!==token)return;await loopClip(chapters[i],id,i)}await black(430);film.className='show blur';await seek(4.28);cap({t:'Pero hay algo que me gusta todavía más…'});prog(5,20);await wait(1650);hideCap();film.className='show soft push';await loopClip(chapters[5],id,5);if(id!==token)return;await black(500);film.pause();progress.classList.remove('show');sound.classList.remove('show');final.hidden=false;await mp}
-start.addEventListener('click',story);replay.addEventListener('click',()=>{token++;film.pause();song.pause();final.hidden=true;setTimeout(story,250)});sound.addEventListener('click',()=>{muted=!muted;song.muted=muted;sound.textContent=muted?'×':'♪';if(!muted)safePlay(song)});document.addEventListener('visibilitychange',()=>{if(document.hidden){film.pause();song.pause()}});
+start.addEventListener('click',story);
+replay.addEventListener('click',()=>{
+  token++;
+  film.pause();
+  song.pause();
+  song.currentTime=0;
+  final.hidden=true;
+  setTimeout(story,250);
+});
+sound.addEventListener('click',()=>{
+  muted=!muted;
+  song.muted=muted;
+  sound.textContent=muted?'×':'♪';
+  if(!muted){
+    safePlay(song);
+    stat('',false);
+  }
+});document.addEventListener('visibilitychange',()=>{if(document.hidden){film.pause();song.pause()}});
 film.addEventListener('error',()=>stat('No pude cargar el video. Reabre el enlace en Chrome.',true));song.addEventListener('error',()=>stat('El video funciona; la música no pudo cargar.',true));
 })();
 </script>
