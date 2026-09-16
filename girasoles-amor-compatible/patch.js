@@ -1,3 +1,51 @@
+// Tema romántico rosado: conserva la animación original y cambia las flores amarillas por tonos rosados.
+document.title='Un camino de flores rosadas para ti 💗';
+if(typeof gate!=='undefined'){
+  const gateText=gate.querySelector('p');
+  if(gateText)gateText.textContent='Preparé un camino de flores rosadas para ti. Activa el sonido y deja que todo florezca.';
+}
+if(typeof hint!=='undefined')hint.textContent='Una sola historia, de principio a fin 🌸';
+if(typeof phrases!=='undefined'&&phrases[4])phrases[4][2]='21 de septiembre, Feliz día del Amor 💗';
+
+// Reemplaza únicamente el aspecto de las flores principales.
+flower=function(px,py,s,open,wind,alpha){
+  open=open==null?1:open;
+  wind=wind||0;
+  alpha=alpha==null?1:alpha;
+  x.save();
+  x.globalAlpha=alpha;
+  x.strokeStyle='#244516';
+  x.lineWidth=Math.max(1,s*.08);
+  x.beginPath();
+  x.moveTo(px,py+s*1.8);
+  x.quadraticCurveTo(px+wind*s*.3,py+s*.9,px,py);
+  x.stroke();
+  x.translate(px,py);
+  x.rotate(wind*.08);
+  for(let i=0;i<18;i++){
+    x.save();
+    x.rotate(i*Math.PI*2/18);
+    x.scale(open,open);
+    x.fillStyle=i%2?'#f06292':'#f8a5c2';
+    x.beginPath();
+    x.ellipse(0,-s*.62,s*.18,s*.5,0,0,Math.PI*2);
+    x.fill();
+    x.restore();
+  }
+  x.fillStyle='#6b3a32';
+  x.beginPath();
+  x.arc(0,0,s*.34,0,Math.PI*2);
+  x.fill();
+  x.fillStyle='#35201b';
+  for(let i=0;i<34;i++){
+    let a=i*2.4,r=Math.sqrt(i/34)*s*.28;
+    x.beginPath();
+    x.arc(Math.cos(a)*r,Math.sin(a)*r,s*.025,0,7);
+    x.fill();
+  }
+  x.restore();
+};
+
 // Corrección mínima: conserva intacta la versión verde original y solo tapa los huecos del fondo.
 function drawFarGapFill(t,horizon,path){
   const rows=[
@@ -84,7 +132,7 @@ async function loadYellowLocal(){
       if(yellowReady)return;
       yellowReady=true;
       startBtn.disabled=false;
-      startBtn.textContent='Comenzar 💛';
+      startBtn.textContent='Comenzar 💗';
       startBtn.style.opacity='1';
       hint.textContent='Música lista ♪';
     };
@@ -92,7 +140,7 @@ async function loadYellowLocal(){
     yellowAudio.addEventListener('loadeddata',ready,{once:true});
     yellowAudio.addEventListener('error',()=>{
       startBtn.disabled=false;
-      startBtn.textContent='Comenzar 💛';
+      startBtn.textContent='Comenzar 💗';
       startBtn.style.opacity='1';
       hint.textContent='Toca ♪ si no escuchas la música';
     },{once:true});
@@ -100,7 +148,7 @@ async function loadYellowLocal(){
   }catch(err){
     console.error('Yellow local:',err);
     startBtn.disabled=false;
-    startBtn.textContent='Comenzar 💛';
+    startBtn.textContent='Comenzar 💗';
     startBtn.style.opacity='1';
     hint.textContent='Toca ♪ si no escuchas la música';
   }
