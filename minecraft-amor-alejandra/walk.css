@@ -1,90 +1,121 @@
-/* Animación de caminata de Anderson hacia el letrero DESTINO */
+/* Caminata de Anderson hacia el letrero DESTINO */
 .scene[data-scene="1"] .boy.walking{
   animation:walkToDestination 4s linear forwards,walkBounce .22s steps(2,end) infinite;
   will-change:left,transform;
 }
+.scene[data-scene="1"] .boy.walking .pixel-body:before{transform-origin:50% 8%;animation:leftArmWalk .44s steps(2,end) infinite}
+.scene[data-scene="1"] .boy.walking .pixel-body:after{transform-origin:50% 8%;animation:rightArmWalk .44s steps(2,end) infinite}
+.scene[data-scene="1"] .boy.walking .pixel-legs{animation:legsWalk .22s steps(2,end) infinite}
+.scene[data-scene="1"] .boy.arrived{left:69%;animation:arriveBounce .45s steps(2,end) 2}
+.scene[data-scene="1"] .sign-one.reached{animation:signReached .55s steps(2,end) 3;color:#fff2a8}
+.scene[data-scene="1"] .dialog-box.walking-now{box-shadow:8px 8px 0 rgba(0,0,0,.28),0 0 0 4px rgba(255,209,102,.28)}
+.scene[data-scene="1"] .dialog-box.walking-now .pixel-btn{opacity:.72;cursor:wait}
 
-.scene[data-scene="1"] .boy.walking .pixel-body:before{
-  transform-origin:50% 8%;
-  animation:leftArmWalk .44s steps(2,end) infinite;
-}
+@keyframes walkToDestination{from{left:16%}to{left:69%}}
+@keyframes walkBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes leftArmWalk{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-10deg)}}
+@keyframes rightArmWalk{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}}
+@keyframes legsWalk{0%,100%{transform:translateY(0) skewX(0)}50%{transform:translateY(-3px) skewX(7deg)}}
+@keyframes arriveBounce{50%{transform:translateY(-8px)}}
+@keyframes signReached{50%{transform:rotate(1deg) scale(1.06)}}
 
-.scene[data-scene="1"] .boy.walking .pixel-body:after{
-  transform-origin:50% 8%;
-  animation:rightArmWalk .44s steps(2,end) infinite;
-}
-
-.scene[data-scene="1"] .boy.walking .pixel-legs{
-  animation:legsWalk .22s steps(2,end) infinite;
-}
-
-.scene[data-scene="1"] .boy.arrived{
-  left:69%;
-  animation:arriveBounce .45s steps(2,end) 2;
-}
-
-.scene[data-scene="1"] .sign-one.reached{
-  animation:signReached .55s steps(2,end) 3;
-  color:#fff2a8;
-}
-
-.scene[data-scene="1"] .dialog-box.walking-now{
-  box-shadow:8px 8px 0 rgba(0,0,0,.28),0 0 0 4px rgba(255,209,102,.28);
-}
-
-.scene[data-scene="1"] .dialog-box.walking-now .pixel-btn{
-  opacity:.72;
-  cursor:wait;
-}
-
-@keyframes walkToDestination{
-  from{left:16%}
-  to{left:69%}
-}
-
-@keyframes walkBounce{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-7px)}
-}
-
-@keyframes leftArmWalk{
-  0%,100%{transform:rotate(8deg)}
-  50%{transform:rotate(-10deg)}
-}
-
-@keyframes rightArmWalk{
-  0%,100%{transform:rotate(-10deg)}
-  50%{transform:rotate(8deg)}
-}
-
-@keyframes legsWalk{
-  0%,100%{transform:translateY(0) skewX(0)}
-  50%{transform:translateY(-3px) skewX(7deg)}
-}
-
-@keyframes arriveBounce{
-  50%{transform:translateY(-8px)}
-}
-
-@keyframes signReached{
-  50%{transform:rotate(1deg) scale(1.06)}
-}
-
+/* =========================================================
+   ADAPTACIÓN MÓVIL — ANDROID / IPHONE
+   ========================================================= */
 @media (max-width:700px){
-  .scene[data-scene="1"] .boy.arrived{left:56%}
-  @keyframes walkToDestination{
-    from{left:9%}
-    to{left:56%}
-  }
+  html,body{width:100%;height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
+  body{position:fixed;inset:0}
+  .game-shell{width:100%;height:100vh;height:100svh;min-height:0;max-height:none;overflow:hidden}
+  .scene{width:100%;height:100%;min-height:0;overflow:hidden}
+
+  /* Controles superiores y área segura del teléfono */
+  .controls{top:max(8px,env(safe-area-inset-top));right:8px}
+  .round-btn{width:42px;height:42px;font-size:18px;border-width:3px;box-shadow:3px 3px 0 rgba(0,0,0,.4)}
+  .world-header{top:max(12px,env(safe-area-inset-top));left:10px;right:58px;font-size:7px;line-height:1.5;gap:8px}
+  .hearts-ui{font-size:12px;letter-spacing:0;white-space:nowrap}
+  .level-ui{text-align:right;max-width:52vw}
+
+  /* Pantalla inicial */
+  .intro-panel{width:calc(100% - 24px);margin:9vh 12px 0;padding:18px 14px;box-shadow:5px 5px 0 rgba(0,0,0,.3)}
+  .intro-panel .pixel-badge{font-size:7px;padding:7px 8px;margin-bottom:14px}
+  .intro-panel h1{font-size:clamp(18px,6vw,25px);line-height:1.45;text-shadow:2px 2px 0 #fff;margin-bottom:12px}
+  .intro-panel p{font-size:clamp(20px,6vw,25px);line-height:1;margin-bottom:18px}
+  .intro-panel .pixel-btn{width:100%;font-size:8px;padding:12px 9px}
+  .tap-note{bottom:max(18px,calc(env(safe-area-inset-bottom) + 8px));font-size:6px;max-width:90vw;white-space:normal;text-align:center;line-height:1.6}
+  .sun{width:52px;height:52px;right:8vw;top:10vh}
+  .sun:before{width:68px;height:6px;left:-8px;top:23px}.sun:after{height:68px;width:6px;top:-8px;left:23px}
+  .cloud{scale:.7}
+
+  /* Misión 01 */
+  .scene[data-scene="1"] .ground-path{height:34%}
+  .scene[data-scene="1"] .flower-field{bottom:29%;height:6%}
+  .scene[data-scene="1"] .boy{left:7%;bottom:30%;scale:.68;transform-origin:left bottom}
+  .scene[data-scene="1"] .boy.arrived{left:53%}
+  .scene[data-scene="1"] .sign-one{right:5%;bottom:35%;font-size:7px;padding:9px 10px;border-width:3px;scale:.88;transform-origin:center bottom}
+  .scene[data-scene="1"] .sign-one:after{height:54px;width:8px}
+  @keyframes walkToDestination{from{left:7%}to{left:53%}}
+
+  /* Cajas de diálogo en vertical */
+  .dialog-box{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));transform:none;width:auto;padding:10px;gap:8px;display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;border-width:3px;box-shadow:5px 5px 0 rgba(0,0,0,.28)}
+  .dialog-box .avatar{width:40px;height:40px;border-width:3px;font-size:11px;grid-row:1}
+  .dialog-box strong{font-size:8px;line-height:1.4}
+  .dialog-box p{font-size:18px;line-height:1.02;margin:5px 0 0}
+  .dialog-box .pixel-btn.small{grid-column:1 / -1;width:100%;margin:2px 0 0;font-size:7px;padding:9px 8px;border-width:3px;box-shadow:3px 3px 0 rgba(0,0,0,.3)}
+
+  /* Escena nocturna */
+  .center-message{width:calc(100% - 24px);margin:8vh 12px 0;padding:16px 14px;max-height:82svh;overflow:auto}
+  .center-message .pixel-badge{font-size:7px;padding:7px 8px;margin-bottom:12px}
+  .center-message h2{font-size:clamp(17px,5.4vw,23px);line-height:1.45;margin-bottom:12px}
+  .center-message p{font-size:20px;line-height:1.02;margin-bottom:12px}
+  .center-message .pixel-btn{width:100%;font-size:8px;padding:11px 8px}
+  .moon{width:46px;height:46px;right:8%;top:7%}
+  .torch{scale:.72;transform-origin:bottom}
+
+  /* Encuentro con Alejandra */
+  .scene[data-scene="3"] .boy-final{left:22%;bottom:26%;scale:.58;transform-origin:bottom center}
+  .scene[data-scene="3"] .girl-final{right:22%;bottom:26%;scale:.58;transform-origin:bottom center}
+  .scene[data-scene="3"] .big-heart{top:18%;font-size:44px}
+  .scene[data-scene="3"] .pixel-tree{scale:.63;transform-origin:bottom center}
+  .scene[data-scene="3"] .left-tree{left:-8%}.scene[data-scene="3"] .right-tree{right:-8%}
+  .scene[data-scene="3"] .love-dialog{bottom:max(10px,env(safe-area-inset-bottom))}
+
+  /* Pantalla final: desplazable si el teléfono es muy bajo */
+  .final-card{width:calc(100% - 20px);margin:max(52px,7vh) 10px 10px;padding:14px 12px;max-height:calc(100svh - 64px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;box-shadow:5px 5px 0 rgba(0,0,0,.4)}
+  .final-card .pixel-badge{font-size:7px;padding:7px 8px;margin-bottom:8px}
+  .pixel-heart-logo{font-size:48px;margin-bottom:6px}
+  .final-card h2{font-size:18px;line-height:1.45;margin-bottom:10px}
+  .big-copy{font-size:20px;line-height:1.02;margin-bottom:10px}
+  .soft-copy{font-size:18px;line-height:1.03;margin-bottom:10px}
+  .signature{font-size:7px;line-height:1.6;padding:9px;margin:10px auto}
+  .final-actions{gap:8px}.final-actions .pixel-btn{width:100%;font-size:7px;padding:10px 8px}
+  .toast{bottom:max(12px,env(safe-area-inset-bottom));font-size:7px;width:calc(100% - 24px)}
+}
+
+/* Android en horizontal o teléfonos de poca altura */
+@media (max-height:500px) and (orientation:landscape){
+  .game-shell{height:100vh;height:100svh;min-height:0}
+  .intro-panel{margin:3vh auto 0;width:min(620px,72vw);padding:10px 14px}
+  .intro-panel .pixel-badge{margin-bottom:7px}.intro-panel h1{font-size:16px;margin-bottom:7px}.intro-panel p{font-size:18px;margin-bottom:9px}.intro-panel .pixel-btn{padding:8px;font-size:7px}
+  .tap-note{display:none}
+
+  .scene[data-scene="1"] .boy{bottom:25%;scale:.55}
+  .scene[data-scene="1"] .sign-one{bottom:30%;scale:.72}
+  .scene[data-scene="1"] .ground-path{height:30%}.scene[data-scene="1"] .flower-field{bottom:25%}
+  .dialog-box{bottom:6px;left:14%;right:14%;padding:6px 8px;grid-template-columns:34px 1fr auto;gap:7px}
+  .dialog-box .avatar{width:34px;height:34px}.dialog-box p{font-size:15px;margin-top:2px}.dialog-box strong{font-size:7px}
+  .dialog-box .pixel-btn.small{grid-column:auto;width:auto;margin:0;font-size:6px;padding:7px}
+
+  .center-message{width:min(680px,76vw);margin:3vh auto 0;padding:9px 14px;max-height:94svh}.center-message h2{font-size:14px;margin-bottom:7px}.center-message p{font-size:16px;margin-bottom:6px}.center-message .pixel-badge{margin-bottom:6px}.center-message .pixel-btn{padding:7px;font-size:7px}
+
+  .scene[data-scene="3"] .boy-final,.scene[data-scene="3"] .girl-final{bottom:21%;scale:.48}.scene[data-scene="3"] .big-heart{top:12%;font-size:36px}
+  .scene[data-scene="3"] .love-dialog{left:12%;right:12%;bottom:6px}
+
+  .final-card{width:min(690px,78vw);margin:2vh auto 0;padding:8px 14px;max-height:96svh}.pixel-heart-logo{font-size:34px}.final-card h2{font-size:14px;margin-bottom:5px}.big-copy{font-size:16px;margin-bottom:5px}.soft-copy{font-size:15px;margin-bottom:5px}.signature{margin:5px auto;padding:6px}.final-actions{flex-wrap:nowrap}.final-actions .pixel-btn{width:auto;flex:1;padding:7px}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .scene[data-scene="1"] .boy.walking{
-    animation:walkToDestination .8s linear forwards;
-  }
+  .scene[data-scene="1"] .boy.walking{animation:walkToDestination .8s linear forwards}
   .scene[data-scene="1"] .boy.walking .pixel-body:before,
   .scene[data-scene="1"] .boy.walking .pixel-body:after,
-  .scene[data-scene="1"] .boy.walking .pixel-legs{
-    animation:none;
-  }
+  .scene[data-scene="1"] .boy.walking .pixel-legs{animation:none}
 }
