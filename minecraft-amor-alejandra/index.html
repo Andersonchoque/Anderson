@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#8ed6ff" />
+  <meta name="description" content="Una pequeña aventura 8-bit hecha por Anderson para Alejandra." />
+  <title>Una pausa para ti ❤️</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" class="game-shell" aria-live="polite">
+    <section class="scene scene-intro active" data-scene="0">
+      <div class="sky-decor cloud cloud-a"></div>
+      <div class="sky-decor cloud cloud-b"></div>
+      <div class="sun" aria-hidden="true"></div>
+      <div class="mountains" aria-hidden="true"></div>
+      <div class="ground" aria-hidden="true"></div>
+
+      <div class="panel intro-panel">
+        <span class="pixel-badge">ANDERSON PRESENTA</span>
+        <h1>Una pequeña aventura<br><span>para mi amor ❤️</span></h1>
+        <p>Puede que estés ocupada trabajando… pero esto solo te tomará un ratito.</p>
+        <button class="pixel-btn primary" data-next>
+          <span>Comenzar aventura</span>
+          <span class="btn-icon">▶</span>
+        </button>
+      </div>
+      <p class="tap-note">Toca la pantalla y entra conmigo ✨</p>
+    </section>
+
+    <section class="scene" data-scene="1">
+      <div class="world-header">
+        <span class="hearts-ui" aria-hidden="true">♥ ♥ ♥ ♥ ♥</span>
+        <span class="level-ui">Misión 01 · Encontrarte</span>
+      </div>
+      <div class="sky-decor cloud cloud-c"></div>
+      <div class="ground ground-path" aria-hidden="true"></div>
+      <div class="flower-field" aria-hidden="true"></div>
+
+      <div class="character boy" aria-label="Personaje de Anderson">
+        <div class="shadow"></div>
+        <div class="pixel-head"><i class="hair"></i><i class="eye e1"></i><i class="eye e2"></i></div>
+        <div class="pixel-body"></div>
+        <div class="pixel-legs"></div>
+      </div>
+
+      <div class="sign sign-one">DESTINO →</div>
+
+      <div class="dialog-box">
+        <div class="avatar mini-boy">A</div>
+        <div>
+          <strong>Anderson</strong>
+          <p>Hoy mi misión fue sencilla: encontrar una forma bonita de aparecer un momento en tu día.</p>
+        </div>
+        <button class="pixel-btn small" data-next>Siguiente ▸</button>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="2">
+      <div class="night-sky" aria-hidden="true"></div>
+      <div class="moon" aria-hidden="true"></div>
+      <div class="stars" aria-hidden="true"></div>
+      <div class="ground night-ground" aria-hidden="true"></div>
+      <div class="torch t1" aria-hidden="true"></div>
+      <div class="torch t2" aria-hidden="true"></div>
+
+      <div class="center-message panel dark-panel">
+        <span class="pixel-badge gold">MENSAJE DESBLOQUEADO</span>
+        <h2>Mi amor, sigue brillando ✨</h2>
+        <p>
+          Sé que ahora estás trabajando y quizá el día esté pesado, pero quiero que recuerdes algo:
+          <b>estoy orgulloso de ti.</b>
+        </p>
+        <p>
+          Por tu esfuerzo, por tu paciencia y por seguir adelante incluso cuando estás cansada.
+        </p>
+        <button class="pixel-btn primary" data-next>Seguir avanzando ♥</button>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="3">
+      <div class="pink-sky" aria-hidden="true"></div>
+      <div class="ground rose-ground" aria-hidden="true"></div>
+      <div class="pixel-tree left-tree" aria-hidden="true"></div>
+      <div class="pixel-tree right-tree" aria-hidden="true"></div>
+
+      <div class="character boy boy-final" aria-label="Anderson"></div>
+      <div class="character girl girl-final" aria-label="Alejandra">
+        <div class="shadow"></div>
+        <div class="pixel-head"><i class="girl-hair"></i><i class="eye e1"></i><i class="eye e2"></i></div>
+        <div class="pixel-body"></div>
+        <div class="pixel-legs"></div>
+      </div>
+      <div class="floating-heart big-heart" aria-hidden="true">♥</div>
+
+      <div class="dialog-box love-dialog">
+        <div class="avatar mini-heart">♥</div>
+        <div>
+          <strong>Para Alejandra</strong>
+          <p>No importa cuántas horas falten para terminar el trabajo. Cuando leas esto, recuerda que hay alguien pensando en ti y deseando verte sonreír.</p>
+        </div>
+        <button class="pixel-btn small" data-next>Última sorpresa ▸</button>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="4">
+      <div class="final-bg" aria-hidden="true"></div>
+      <div class="heart-rain" id="heartRain" aria-hidden="true"></div>
+
+      <div class="final-card panel">
+        <span class="pixel-badge">MISIÓN COMPLETADA</span>
+        <div class="pixel-heart-logo" aria-hidden="true">♥</div>
+        <h2>Te amo, mi amor ❤️</h2>
+        <p class="big-copy">Que este pequeño detalle te acompañe mientras trabajas y te recuerde que eres muy importante para mí.</p>
+        <p class="soft-copy">Cuídate, sonríe cuando puedas y vuelve conmigo cuando termines tu jornada. Yo te estaré esperando con mucho amor.</p>
+        <div class="signature">Hecho por <b>Anderson</b>, para mi novia.</div>
+        <div class="final-actions">
+          <button class="pixel-btn primary" id="hugBtn">Recibir abrazo 🤍</button>
+          <button class="pixel-btn ghost" id="replayBtn">Volver a jugar ↻</button>
+        </div>
+      </div>
+
+      <div class="toast" id="hugToast" role="status">Abrazo enviado con éxito: 100% amor desbloqueado 💗</div>
+    </section>
+
+    <div class="controls" aria-label="Controles de audio">
+      <button id="soundBtn" class="round-btn" aria-label="Activar o desactivar sonido">♪</button>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
