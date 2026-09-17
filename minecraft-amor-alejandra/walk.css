@@ -1,0 +1,90 @@
+/* Animación de caminata de Anderson hacia el letrero DESTINO */
+.scene[data-scene="1"] .boy.walking{
+  animation:walkToDestination 4s linear forwards,walkBounce .22s steps(2,end) infinite;
+  will-change:left,transform;
+}
+
+.scene[data-scene="1"] .boy.walking .pixel-body:before{
+  transform-origin:50% 8%;
+  animation:leftArmWalk .44s steps(2,end) infinite;
+}
+
+.scene[data-scene="1"] .boy.walking .pixel-body:after{
+  transform-origin:50% 8%;
+  animation:rightArmWalk .44s steps(2,end) infinite;
+}
+
+.scene[data-scene="1"] .boy.walking .pixel-legs{
+  animation:legsWalk .22s steps(2,end) infinite;
+}
+
+.scene[data-scene="1"] .boy.arrived{
+  left:69%;
+  animation:arriveBounce .45s steps(2,end) 2;
+}
+
+.scene[data-scene="1"] .sign-one.reached{
+  animation:signReached .55s steps(2,end) 3;
+  color:#fff2a8;
+}
+
+.scene[data-scene="1"] .dialog-box.walking-now{
+  box-shadow:8px 8px 0 rgba(0,0,0,.28),0 0 0 4px rgba(255,209,102,.28);
+}
+
+.scene[data-scene="1"] .dialog-box.walking-now .pixel-btn{
+  opacity:.72;
+  cursor:wait;
+}
+
+@keyframes walkToDestination{
+  from{left:16%}
+  to{left:69%}
+}
+
+@keyframes walkBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-7px)}
+}
+
+@keyframes leftArmWalk{
+  0%,100%{transform:rotate(8deg)}
+  50%{transform:rotate(-10deg)}
+}
+
+@keyframes rightArmWalk{
+  0%,100%{transform:rotate(-10deg)}
+  50%{transform:rotate(8deg)}
+}
+
+@keyframes legsWalk{
+  0%,100%{transform:translateY(0) skewX(0)}
+  50%{transform:translateY(-3px) skewX(7deg)}
+}
+
+@keyframes arriveBounce{
+  50%{transform:translateY(-8px)}
+}
+
+@keyframes signReached{
+  50%{transform:rotate(1deg) scale(1.06)}
+}
+
+@media (max-width:700px){
+  .scene[data-scene="1"] .boy.arrived{left:56%}
+  @keyframes walkToDestination{
+    from{left:9%}
+    to{left:56%}
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .scene[data-scene="1"] .boy.walking{
+    animation:walkToDestination .8s linear forwards;
+  }
+  .scene[data-scene="1"] .boy.walking .pixel-body:before,
+  .scene[data-scene="1"] .boy.walking .pixel-body:after,
+  .scene[data-scene="1"] .boy.walking .pixel-legs{
+    animation:none;
+  }
+}
