@@ -10,16 +10,19 @@ html,body{margin:0;width:100%;height:100%;background:#0b1023;font-family:-apple-
 *{box-sizing:border-box}
 #frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#0b1023;opacity:0;transition:.45s opacity}
 body.started #frame{opacity:1}
-#cover{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 20%,rgba(246,156,189,.18),transparent 35%),linear-gradient(145deg,#080d1f,#111735 60%,#161127);color:#fff}
+#cover{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));background:radial-gradient(circle at 20% 20%,rgba(246,156,189,.18),transparent 35%),linear-gradient(145deg,#080d1f,#111735 60%,#161127);color:#fff}
 body.started #cover{display:none}
 .card{width:min(92vw,520px);padding:34px 26px;border-radius:28px;text-align:center;background:rgba(15,21,47,.78);border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 80px rgba(0,0,0,.35)}
-.heart{font-size:38px;margin-bottom:12px}
-.small{font-size:12px;letter-spacing:.16em;font-weight:800;color:#f6ddb0}
+.heart{font-size:38px;margin-bottom:12px}.small{font-size:12px;letter-spacing:.16em;font-weight:800;color:#f6ddb0}
 h1{font-size:clamp(42px,11vw,68px);line-height:.95;margin:8px 0 18px} h1 span{color:#ffd0df}
 p{color:#ded5df;line-height:1.55;font-size:16px}
-button{border:0;border-radius:999px;padding:16px 28px;font-size:17px;font-weight:800;background:linear-gradient(135deg,#ffd9e6,#f69cbd);color:#421629;box-shadow:0 12px 34px rgba(246,156,189,.28)}
+button{border:0;border-radius:999px;padding:16px 28px;font-size:17px;font-weight:800;background:linear-gradient(135deg,#ffd9e6,#f69cbd);color:#421629;box-shadow:0 12px 34px rgba(246,156,189,.28);-webkit-tap-highlight-color:transparent}
+button:disabled{opacity:.72}
+#musicBtn{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));z-index:25;display:none;padding:11px 14px;color:#fff;background:rgba(8,13,31,.78);border:1px solid rgba(255,255,255,.16);box-shadow:none;font-size:13px}
+body.started #musicBtn{display:block}
 .fallback{position:fixed;left:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:20;display:none;color:#fff;text-decoration:none;background:rgba(8,13,31,.75);padding:11px 14px;border-radius:999px;font-size:13px}
 body.started .fallback{display:block}
+.status{font-size:12px;color:rgba(255,255,255,.62);margin-top:12px}
 </style>
 </head>
 <body>
@@ -30,13 +33,55 @@ body.started .fallback{display:block}
     <div class="small">DE ANDERSON, CON AMOR</div>
     <h1>Cuando llegas <span>tú.</span></h1>
     <p>Preparé algo muy especial para ti. Ponte los audífonos, mi amor, sube un poquito el volumen y disfruta cada momento. Solo sigue los pasos y toca cada botón cuando aparezca. ❤️</p>
-    <button id="start">Comenzar ❤️</button>
+    <button id="start" disabled>Preparando música… ❤️</button>
+    <div class="status" id="status">Cargando nuestra canción…</div>
   </div>
 </div>
 <a class="fallback" href="https://cuando-llegas-tu-alejandra.losdebarrio123.chatgpt.site">Abrir directamente ❤️</a>
+<button id="musicBtn">♫ Música</button>
+<audio id="music" playsinline loop></audio>
 <script>
-document.getElementById('start').addEventListener('click',()=>document.body.classList.add('started'));
+(()=>{
+ const audio=document.getElementById('music');
+ const start=document.getElementById('start');
+ const status=document.getElementById('status');
+ const musicBtn=document.getElementById('musicBtn');
+ audio.volume=.42;
+ const base='https://cdn.jsdelivr.net/gh/Andersonchoque/sorpresa-para-alejandra@main/renovacion-convenio/audio/';
+ const parts=['part01.txt','part02.txt','part03.txt','part04.txt','part05.txt'];
+ async function loadMusic(){
+  try{
+   const texts=await Promise.all(parts.map(async p=>{
+    const r=await fetch(base+p,{cache:'force-cache'});
+    if(!r.ok) throw new Error(p);
+    return (await r.text()).trim();
+   }));
+   const raw=atob(texts.join(''));
+   const bytes=new Uint8Array(raw.length);
+   for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+   audio.src=URL.createObjectURL(new Blob([bytes],{type:'audio/mpeg'}));
+   audio.load();
+   start.disabled=false;
+   start.textContent='Comenzar ❤️';
+   status.textContent='Audífonos listos 🎧';
+  }catch(e){
+   start.disabled=false;
+   start.textContent='Comenzar ❤️';
+   status.textContent='Puedes comenzar; toca Música si no suena.';
+  }
+ }
+ loadMusic();
+ start.addEventListener('click',async()=>{
+  document.body.classList.add('started');
+  try{audio.currentTime=0;await audio.play();musicBtn.textContent='🔊 Música';}
+  catch(e){musicBtn.textContent='▶ Activar música';}
+ },{once:true});
+ musicBtn.addEventListener('click',async()=>{
+  if(audio.paused){try{await audio.play();musicBtn.textContent='🔊 Música';}catch(e){}}
+  else if(audio.muted){audio.muted=false;musicBtn.textContent='🔊 Música';}
+  else{audio.muted=true;musicBtn.textContent='🔇 Música';}
+ });
+})();
 </script>
-<!-- deploy refresh 2026-09-30 -->
 </body>
 </html>
