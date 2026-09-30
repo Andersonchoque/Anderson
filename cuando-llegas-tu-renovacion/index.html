@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b1023">
+  <meta name="color-scheme" content="dark">
+  <title>Cuando llegas tú · Alejandra</title>
+  <meta name="description" content="Una pequeña historia para Alejandra, con amor de Anderson.">
+  <style>
+    :root {
+      --bg: #0b1023;
+      --glass: rgba(15, 21, 47, .72);
+      --text: #fff8fb;
+      --muted: #d8cfda;
+      --pink: #f69cbd;
+      --pink2: #ffd0df;
+      --gold: #f6ddb0;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--bg); overscroll-behavior: none; }
+    @supports (height: 100dvh) { html, body { height: 100dvh; } }
+    body { font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif; }
+
+    .site-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 100svh;
+      border: 0;
+      background: var(--bg);
+      opacity: 0;
+      transition: opacity .7s ease;
+    }
+    body.started .site-frame { opacity: 1; }
+
+    .start-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: max(22px, env(safe-area-inset-top)) 22px max(22px, env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 20% 20%, rgba(246,156,189,.16), transparent 34%),
+        radial-gradient(circle at 80% 76%, rgba(246,221,176,.10), transparent 36%),
+        linear-gradient(145deg, #080d1f, #101735 55%, #111127);
+      color: var(--text);
+      transition: opacity .65s ease, visibility .65s ease;
+    }
+    body.started .start-layer { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .start-card {
+      width: min(92vw, 500px);
+      padding: 34px 26px 28px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 28px;
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 24px 80px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.08);
+      animation: cardIn .8s cubic-bezier(.2,.75,.2,1) both;
+    }
+    .tiny { margin: 0 0 10px; letter-spacing: .17em; font-size: .72rem; font-weight: 700; color: var(--gold); }
+    h1 { margin: 0; font-size: clamp(2.25rem, 9vw, 4rem); line-height: .98; letter-spacing: -.045em; }
+    .accent { color: var(--pink2); }
+    .subtitle { margin: 18px auto 24px; max-width: 380px; color: var(--muted); line-height: 1.55; font-size: 1rem; }
+    .start-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      min-width: 210px;
+      padding: 15px 22px;
+      font: inherit;
+      font-weight: 800;
+      color: #3a1323;
+      background: linear-gradient(135deg, #ffd9e6, #f69cbd);
+      box-shadow: 0 12px 34px rgba(246,156,189,.26);
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .start-btn:active { transform: scale(.97); }
+    .start-btn:disabled { opacity: .72; cursor: wait; }
+    .hint { margin: 14px 0 0; font-size: .78rem; color: rgba(255,255,255,.58); }
+
+    .music-control {
+      position: fixed;
+      right: max(14px, env(safe-area-inset-right));
+      bottom: max(14px, env(safe-area-inset-bottom));
+      z-index: 30;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      padding: 10px 13px;
+      color: white;
+      background: rgba(8,13,31,.68);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 30px rgba(0,0,0,.24);
+      font: 700 .82rem/1 system-ui, sans-serif;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body.started .music-control { display: inline-flex; }
+    .music-control .icon { font-size: 1.05rem; }
+
+    .fallback {
+      position: fixed;
+      left: max(14px, env(safe-area-inset-left));
+      bottom: max(14px, env(safe-area-inset-bottom));
+      z-index: 29;
+      display: none;
+      color: rgba(255,255,255,.75);
+      text-decoration: none;
+      font: 600 .75rem/1 system-ui, sans-serif;
+      background: rgba(8,13,31,.56);
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+    }
+    body.started .fallback { display: block; }
+
+    .heart {
+      display: inline-block;
+      margin-bottom: 14px;
+      font-size: 2rem;
+      filter: drop-shadow(0 0 18px rgba(246,156,189,.45));
+      animation: beat 1.8s ease-in-out infinite;
+    }
+
+    @keyframes beat { 0%,100% { transform: scale(1); } 45% { transform: scale(1.12); } }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    id="experience"
+    class="site-frame"
+    loading="eager"
+    src="https://cuando-llegas-tu-alejandra.losdebarrio123.chatgpt.site"
+    title="Cuando llegas tú · Para Alejandra"
+    allow="autoplay; fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin"
+  ></iframe>
+
+  <div class="start-layer" id="startLayer" aria-label="Inicio de la experiencia">
+    <section class="start-card">
+      <div class="heart" aria-hidden="true">♥</div>
+      <p class="tiny">DE ANDERSON, CON AMOR</p>
+      <h1>Cuando llegas <span class="accent">tú.</span></h1>
+      <p class="subtitle">
+        Preparé algo muy especial para ti. ❤️<br><br>
+        Ponte los audífonos, mi amor, sube un poquito el volumen y déjate llevar por cada momento.<br><br>
+        Solo sigue los pasos, toca cada botón cuando aparezca y escucha todo con calma… porque cada palabra, cada detalle y cada sonido fueron pensados para ti.
+      </p>
+      <button class="start-btn" id="startBtn" type="button" disabled>Preparando… ❤️</button>
+      <p class="hint">Cuando estés lista, toca el botón y disfruta todo hasta el final. ♫</p>
+    </section>
+  </div>
+
+  <audio id="bgMusic" preload="auto" playsinline></audio>
+
+  <button class="music-control" id="musicBtn" type="button" aria-label="Silenciar música" aria-pressed="false">
+    <span class="icon" id="musicIcon">♫</span>
+    <span id="musicText">Música</span>
+  </button>
+
+  <a class="fallback" href="https://cuando-llegas-tu-alejandra.losdebarrio123.chatgpt.site" target="_blank" rel="noopener">¿No carga? Abrir experiencia ❤️</a>
+
+  <script>
+    (() => {
+      const audio = document.getElementById('bgMusic');
+      const startBtn = document.getElementById('startBtn');
+      const musicBtn = document.getElementById('musicBtn');
+      const musicIcon = document.getElementById('musicIcon');
+      const musicText = document.getElementById('musicText');
+
+      audio.volume = 0.42;
+
+      const audioParts = Array.from({length: 5}, (_, i) => `audio/part${String(i + 1).padStart(2, '0')}.txt`);
+
+      async function prepareMusic() {
+        try {
+          const parts = await Promise.all(audioParts.map(async (url) => {
+            const response = await fetch(url, { cache: 'force-cache' });
+            if (!response.ok) throw new Error(`No se pudo cargar ${url}`);
+            return (await response.text()).trim();
+          }));
+          const binary = atob(parts.join(''));
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          const blob = new Blob([bytes], { type: 'audio/mpeg' });
+          audio.src = URL.createObjectURL(blob);
+          audio.load();
+          startBtn.disabled = false;
+          startBtn.textContent = 'Comenzar ❤️';
+        } catch (err) {
+          console.warn('No se pudo preparar la música:', err);
+          startBtn.disabled = false;
+          startBtn.textContent = 'Comenzar ❤️';
+          musicIcon.textContent = '♪';
+          musicText.textContent = 'Sin música';
+        }
+      }
+
+      prepareMusic();
+
+      async function startExperience() {
+        document.body.classList.add('started');
+        try {
+          audio.currentTime = 0;
+          await audio.play();
+        } catch (err) {
+          musicIcon.textContent = '▶';
+          musicText.textContent = 'Activar música';
+        }
+      }
+
+      function updateMusicUI() {
+        const muted = audio.muted || audio.paused;
+        musicBtn.setAttribute('aria-pressed', String(muted));
+        musicBtn.setAttribute('aria-label', muted ? 'Activar música' : 'Silenciar música');
+        musicIcon.textContent = muted ? '▶' : '♫';
+        musicText.textContent = muted ? 'Activar música' : 'Música';
+      }
+
+      startBtn.addEventListener('click', startExperience, { once: true });
+
+      document.querySelector('.fallback').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = ev.currentTarget.href;
+      });
+
+      musicBtn.addEventListener('click', async () => {
+        if (audio.paused) {
+          audio.muted = false;
+          try { await audio.play(); } catch (_) {}
+        } else {
+          audio.muted = !audio.muted;
+        }
+        updateMusicUI();
+      });
+
+      audio.addEventListener('ended', () => {
+        musicIcon.textContent = '↻';
+        musicText.textContent = 'Repetir música';
+        musicBtn.setAttribute('aria-label', 'Repetir música');
+      });
+
+      let wasPlaying = false;
+      document.addEventListener('visibilitychange', async () => {
+        if (document.hidden) {
+          wasPlaying = !audio.paused && !audio.muted;
+          if (wasPlaying) audio.pause();
+        } else if (wasPlaying) {
+          try { await audio.play(); } catch (_) {}
+        }
+        updateMusicUI();
+      });
+    })();
+  </script>
+</body>
+</html>
